@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, create_engine
+from sqlmodel import SQLModel, create_engine, text
 from sqlalchemy.engine import Engine
 from app.models import *
 import os
@@ -15,6 +15,8 @@ def create_db_engine():
 
 def create_db_and_tables(engine: Engine):
     SQLModel.metadata.create_all(engine)
+    with engine.connect() as connection:
+        connection.execute(text("PRAGMA foreign_keys=ON"))
 
 def main():
     engine = create_db_engine()
