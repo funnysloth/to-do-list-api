@@ -1,7 +1,10 @@
 from sqlmodel import Field, SQLModel, Relationship
 from datetime import datetime
-from app.models.user import User
-from app.models.list_item import ListItem
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.list_item import ListItem
 
 class List(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)

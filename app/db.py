@@ -11,7 +11,8 @@ if not DB_URL:
     raise ValueError("DB_URL environment varibale is not set.")
 
 def create_db_engine():
-    return create_engine(DB_URL, echo=True)
+    connect_args = {"check_same_thread": False}
+    return create_engine(DB_URL, echo=True, connect_args=connect_args)
 
 def create_db_and_tables(engine: Engine):
     SQLModel.metadata.create_all(engine)

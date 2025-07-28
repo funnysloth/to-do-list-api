@@ -1,6 +1,9 @@
 from sqlmodel import Field, SQLModel, Relationship
 from datetime import datetime
-from app.models.list import List
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.list import List
 
 class ListItem(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
