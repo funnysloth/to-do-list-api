@@ -1,8 +1,9 @@
 from sqlmodel import SQLModel
+from fastapi import Form
 
-class UserCreate(SQLModel):
-    username: str
-    password: str
+class UserCredentials(SQLModel):
+    username: str = Form()
+    password: str = Form()
 
 class UserPublic(SQLModel):
     id: int
