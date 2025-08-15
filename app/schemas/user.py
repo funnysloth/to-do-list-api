@@ -10,5 +10,5 @@ class UserPublic(SQLModel):
     username: str
 
 class UserUpdate(SQLModel):
-    username: str | None
-    password: str | None
+    username: str | None = Form(default=None)
+    password: str | None = Form(default=None)

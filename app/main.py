@@ -4,6 +4,7 @@ from fastapi.security import OAuth2PasswordBearer
 from contextlib import asynccontextmanager
 from sqlmodel import Session
 import jwt
+from jwt.exceptions import InvalidTokenError
 
 # Imports from app modules
 from app.db import create_db_engine, create_db_and_tables
@@ -34,12 +35,10 @@ async def lifespan(app: FastAPI):
     create_db_and_tables(db_engine)
     yield
 
-#Initialize app and db
+#Initialize app, db and essentials
 app = FastAPI(lifespan=lifespan)
 db_engine = create_db_engine()
-
 oath2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
 
 def get_session():
     '''
@@ -50,6 +49,9 @@ def get_session():
         yield session
 
 def create_access_token(user: UserPublic, expires_delta: timedelta | None = None) -> str:
+    '''
+    Creates and returns JWT access token
+    '''
     to_encode = user.model_dump().copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -59,15 +61,30 @@ def create_access_token(user: UserPublic, expires_delta: timedelta | None = None
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM) # type: ignore
     return encoded_jwt
 
-@app.get("/")
-def root():
-    return {
-        "Hello": "world"
-    }
+def get_current_user(token: str = Depends(oath2_scheme), session: Session = Depends(get_session)) -> User:
+    '''
+    Decodes the JWT access token and retrieves user from the DB.
+    '''
+    creds_ecxeption = HTTPException(status_code=401,
+                                    detail="Could not validate credentials",
+                                    headers={"WWW-Authenticate": "Bearer"})
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM]) #type: ignore
+        username = payload.get("username")
+        if username is None:
+            raise creds_ecxeption
+    except InvalidTokenError:
+        raise creds_ecxeption
+    user = user_crud.get_user_by_username(session, username)
+    if not user:
+        raise creds_ecxeption
+    return user
 
 @app.post("/register", response_model=UserPublic)
 def create_user(user: UserCredentials, session: Session = Depends(get_session)):
     db_user = User.model_validate(user)
+    if user_crud.get_user_by_username(session, db_user.username):
+        raise HTTPException(status_code=400, detail="User with the same username already exists. Please choose another username.")
     created_user = user_crud.create_user(session, db_user)
     return created_user
 
@@ -83,3 +100,19 @@ def login(user: UserCredentials, session: Session = Depends(get_session)):
         access_token_expires = timedelta(minutes=JWT_EXPIRATION_MINUTES)
         access_token = create_access_token(UserPublic.model_validate(authenticated_user), access_token_expires)
         return {"access_token": access_token, "token_type": "bearer"}
+    
+@app.patch("/user", response_model=UserPublic)
+def update_user(
+    user: UserUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="You are not authenticated.")
+    updated_user = user_crud.update_user(session, current_user, user)
+    return updated_user
+
+@app.delete("/user")
+def delete_user(session: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
+    user_crud.delete_user(session, current_user)
+    return {"message": "User deleted successfully"}

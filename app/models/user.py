@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    username: str = Field(index=True)
+    username: str = Field(index=True, unique=True)
     password: str
 
     lists: list['List'] | None = Relationship(back_populates="user", 
