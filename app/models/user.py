@@ -1,11 +1,16 @@
+# Imports from external libraries
 from sqlmodel import Field, SQLModel, Relationship
+
+# Imports from standard library
 from typing import TYPE_CHECKING
 
+# Imports for type checking
 if TYPE_CHECKING:
     from app.models.list import List
 
+
 class User(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+    id: int = Field(default=None, primary_key=True)
     username: str = Field(index=True, unique=True)
     password: str
 

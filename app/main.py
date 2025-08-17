@@ -9,7 +9,9 @@ from jwt.exceptions import InvalidTokenError
 # Imports from app modules
 from app.db import create_db_engine, create_db_and_tables
 from app.schemas.user import *
+from app.schemas.list import *
 import app.crud.user_crud as user_crud
+import app.crud.list_crud as list_crud
 from app.models.user import User
 from app.exceptions import UserNotFoundException, InvalidCredentialsException
 
@@ -101,7 +103,7 @@ def login(user: UserCredentials, session: Session = Depends(get_session)):
         access_token = create_access_token(UserPublic.model_validate(authenticated_user), access_token_expires)
         return {"access_token": access_token, "token_type": "bearer"}
     
-@app.patch("/user", response_model=UserPublic)
+@app.patch("/users", response_model=UserPublic)
 def update_user(
     user: UserUpdate,
     session: Session = Depends(get_session),
@@ -112,7 +114,18 @@ def update_user(
     updated_user = user_crud.update_user(session, current_user, user)
     return updated_user
 
-@app.delete("/user")
+@app.delete("/users")
 def delete_user(session: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
     user_crud.delete_user(session, current_user)
     return {"message": "User deleted successfully"}
+
+@app.post("/lists", response_model=ListPublic)
+def create_list(
+    list: ListCreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="You are not authenticated.")
+    new_list = list_crud.create_list(session, list, current_user.id)
+    return new_list
