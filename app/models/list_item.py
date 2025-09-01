@@ -10,7 +10,7 @@ class ListItem(SQLModel, table=True):
     content: str
     created_at: datetime = Field(default=datetime.now())
     last_modified_at: datetime = Field(default=datetime.now())
-    is_completed: bool
+    is_completed: bool = Field(default=False)
     list_id: int = Field(foreign_key="list.id", ondelete="CASCADE")
 
     list: List = Relationship(back_populates="list_items")

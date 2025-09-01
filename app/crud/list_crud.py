@@ -33,8 +33,9 @@ def update_list(session: Session, list: List, list_updates:ListUpdate) -> List:
     session.refresh(list)
     return list
 
-def delete_list(session: Session, list: List) -> None:
+def delete_list(session: Session, list_id: int, user: User) -> None:
     """Delete a list."""
+    list = get_user_list_by_id(user, list_id)
     session.delete(list)
     session.commit()
 

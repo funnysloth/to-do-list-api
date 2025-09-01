@@ -10,8 +10,10 @@ from jwt.exceptions import InvalidTokenError
 from app.db import create_db_engine, create_db_and_tables
 from app.schemas.user import *
 from app.schemas.list import *
+from app.schemas.list_item import *
 import app.crud.user_crud as user_crud
 import app.crud.list_crud as list_crud
+import app.crud.list_item_crud as list_item_crud
 from app.models.user import User
 from app.exceptions import UserNotFoundException, InvalidCredentialsException
 
@@ -71,7 +73,6 @@ def get_current_user(token: str = Header(), session: Session = Depends(get_sessi
                                     detail="Could not validate credentials",
                                     headers={"WWW-Authenticate": "Bearer"})
     try:
-        print("TOKEN ================> ", token)
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM]) #type: ignore
         username = payload.get("username")
         if username is None:
@@ -135,13 +136,11 @@ def create_list(
 def get_lists(
     current_user: User = Depends(get_current_user)
 ):
-    print("USER ====================> ", current_user)
-    print("REQUEST --------------------------------------")
     if not current_user:
         raise HTTPException(status_code=401, detail="Unathorized.")
     return current_user.lists
 
-app.get("/lists/{list_id}", response_model=ListPublic)
+@app.get("/lists/{list_id}", response_model=ListPublic)
 def get_list_by_Id(
         list_id: int,
         current_user: User = Depends(get_current_user)
@@ -152,3 +151,87 @@ def get_list_by_Id(
     if not found_list:
         raise HTTPException(status_code=404, detail="The list with such an id wasn't found within user lists.")
     return found_list
+
+@app.delete("/lists/{list_id}")
+def deelte_list(
+    list_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Unathorized.")
+    list_crud.delete_list(session, list_id, current_user)
+    return {"message": "List deleted successfully"}
+
+@app.post("lists/{list_id}/items")
+def create_list_item(
+    list_id: int,
+    list_items: list[ListItemCreate],
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Unathorized.")
+    if not list_crud.get_user_list_by_id(current_user, list_id):
+        raise HTTPException(status_code=403, detail="Unathorized")
+    for item in list_items:
+        list_item_crud.create_list_item(session, item, list_id)
+    return {"message": "List items created successfully"}
+
+@app.get("lists/{list_id}/items")
+def get_list_items(
+    list_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Unathorized.")
+    list = list_crud.get_user_list_by_id(current_user, list_id)
+    if not list:
+        return {"message": "Couldn't find the specified list."}
+    return list.list_items
+
+@app.get("lists/{list_id}/items/{item_id}")
+def get_list_item(
+    list_id: int,
+    list_item_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Unathorized.")
+    list = list_crud.get_user_list_by_id(current_user, list_id)
+    if not list:
+        return {"message": "Couldn't find the specified list."}
+    list_item = list_item_crud.get_list_item_by_id(list_item_id, list)
+    return list_item
+
+@app.patch("lists/{list_id}/items/{item_id}")
+def update_list_item(
+    list_id: int,
+    list_item_id: int,
+    list_item: ListItemUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Unathorized.")
+    list = list_crud.get_user_list_by_id(current_user, list_id)
+    if not list:
+        return {"message": "Couldn't find the specified list."}
+    list_item_crud.update_list_item(session, list_item_id, list, list_item)
+    return {"message": "List item updated successfully"}
+
+@app.delete("lists/{list_id}/items/{item_id}")
+def delete_list_item(
+    list_id: int,
+    list_item_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Unathorized.")
+    list = list_crud.get_user_list_by_id(current_user, list_id)
+    if not list:
+        return {"message": "Couldn't find the specified list."}
+    list_item_crud.delete_list_Item(session, list_item_id, list)
+    return {"message": "List item deleted successfully"}
