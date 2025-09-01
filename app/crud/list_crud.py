@@ -1,6 +1,13 @@
+# Imports from external libraries
+from sqlmodel import select, Session
+
+# Imports from app modules
 from app.models.list import List
 from app.schemas.list import ListCreate, ListUpdate
-from sqlmodel import select, Session
+
+# Imports for type checking
+
+from app.models.user import User
 
 def get_list_by_id(session: Session, id: int) -> List | None:
     """Get a list by its ID."""
@@ -8,9 +15,10 @@ def get_list_by_id(session: Session, id: int) -> List | None:
 
 def create_list(session: Session, list: ListCreate, user_id: int) -> List:
     """Create a new list."""
-    db_list = List.model_validate(list)
+    list_dict = list.model_dump()
+    list_dict["user_id"] = user_id
+    db_list = List.model_validate(list_dict)
     db_list.last_modified_at = db_list.created_at
-    db_list.user_id = user_id
     session.add(db_list)
     session.commit()
     session.refresh(db_list)
@@ -29,3 +37,15 @@ def delete_list(session: Session, list: List) -> None:
     """Delete a list."""
     session.delete(list)
     session.commit()
+
+def get_user_list_by_id(user: User, list_id: int) -> List | None:
+    """
+    Searches for a list by its id within the user lists
+    """
+    if user.lists is None:
+        return None
+    for list in user.lists:
+        if list.id == list_id:
+            return list
+    else:
+        return None

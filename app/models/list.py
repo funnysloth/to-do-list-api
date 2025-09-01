@@ -14,10 +14,9 @@ class List(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str
     created_at: datetime = Field(default=datetime.now())
-    last_modified_at: datetime
+    last_modified_at: datetime = Field(default=datetime.now())
     user_id: int = Field(foreign_key="user.id", ondelete="CASCADE")
 
     user: 'User' = Relationship(back_populates="lists")
     list_items: list['ListItem'] | None = Relationship(back_populates="list", 
-                                                       cascade_delete=True, 
-                                                       passive_deletes=True)
+                                                       cascade_delete=True)

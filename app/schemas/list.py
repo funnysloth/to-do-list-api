@@ -1,9 +1,9 @@
 from sqlmodel import SQLModel
-from typing import TYPE_CHECKING
+# from typing import TYPE_CHECKING
 from datetime import datetime
 
-if TYPE_CHECKING:
-    from app.models.list_item import ListItem
+# if TYPE_CHECKING:
+from app.models.list_item import ListItem
 
 class ListCreate(SQLModel):
     name: str
@@ -16,5 +16,7 @@ class ListUpdate(SQLModel):
 class ListPublic(SQLModel):
     id: int
     name: str
-    items: list['ListItem']
+    items: list['ListItem'] | None = None
     created_at: datetime
+    last_modified_at: datetime
+

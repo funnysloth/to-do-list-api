@@ -26,6 +26,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     '''
     Verifies a password against a hashed password.
     '''
+    print("HASHED PASSWD ===========> ", hashed_password)
     return pwd_context.verify(plain_password, hashed_password)
 
 def create_user(session: Session, user: User) -> User:
@@ -46,7 +47,7 @@ def authenticacte_user(session: Session, user: UserCredentials) -> User | None:
     found_user = get_user_by_username(session, user.username)
     if not found_user:
         raise UserNotFoundException("Invalid username.")
-    if not verify_password(found_user.password, user.password):
+    if not verify_password(user.password, found_user.password):
         raise InvalidCredentialsException("Invalid password.")
     return found_user
 

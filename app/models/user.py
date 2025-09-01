@@ -15,5 +15,4 @@ class User(SQLModel, table=True):
     password: str
 
     lists: list['List'] | None = Relationship(back_populates="user", 
-                                                cascade_delete=True, 
-                                                passive_deletes="all")
+                                                cascade_delete=True)
