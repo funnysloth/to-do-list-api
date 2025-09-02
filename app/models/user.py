@@ -1,5 +1,7 @@
 # Imports from external libraries
 from sqlmodel import Field, SQLModel, Relationship
+from fastapi import Form
+
 
 # Imports from standard library
 from typing import TYPE_CHECKING
@@ -16,3 +18,15 @@ class User(SQLModel, table=True):
 
     lists: list['List'] | None = Relationship(back_populates="user", 
                                                 cascade_delete=True)
+    
+class UserCredentials(SQLModel):
+    username: str = Form()
+    password: str = Form()
+
+class UserPublic(SQLModel):
+    id: int
+    username: str
+
+class UserUpdate(SQLModel):
+    username: str | None = Form(default=None)
+    password: str | None = Form(default=None)

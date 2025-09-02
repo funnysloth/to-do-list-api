@@ -20,3 +20,18 @@ class List(SQLModel, table=True):
     user: 'User' = Relationship(back_populates="lists")
     list_items: list['ListItem'] | None = Relationship(back_populates="list", 
                                                        cascade_delete=True)
+    
+class ListCreate(SQLModel):
+    name: str
+    list_items: list['ListItem'] | None = None
+
+class ListUpdate(SQLModel):
+    name: str | None = None
+    list_items: list['ListItem'] | None = None
+
+class ListPublic(SQLModel):
+    id: int
+    name: str
+    list_items: list['ListItem'] | None = None
+    created_at: datetime
+    last_modified_at: datetime

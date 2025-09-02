@@ -1,16 +1,23 @@
-from sqlmodel import SQLModel
-from datetime import datetime
+# Imports from external libraries
+from pydantic import BaseModel
 
-class ListItemCreate(SQLModel):
-    content: str
+# IMports from app modules
+from app.models.list_item import *
 
-class ListItemUpdate(SQLModel):
-    content: str | None = None
-    is_completed: bool | None = None
+class ListItemResponseBase(BaseModel):
+    message: str
 
-class ListItemPublic(SQLModel):
-    id: int
-    content: str
-    created_at: datetime
-    last_modified_at: datetime
-    is_completed: bool
+class ListItemsCreatedResponse(ListItemResponseBase):
+    list_items: list['ListItemPublic']
+
+class ListItemsRetrievedResponse(ListItemResponseBase):
+    list_items: list['ListItemPublic'] | None
+
+class ListItemRetrievedResponse(ListItemResponseBase):
+    list_item: ListItemPublic
+
+class ListItemUpdateResponse(ListItemResponseBase):
+    list_item: ListItemPublic
+
+class ListItemDeletedResponse(ListItemResponseBase):
+    pass

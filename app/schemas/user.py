@@ -1,14 +1,23 @@
-from sqlmodel import SQLModel
-from fastapi import Form
+# Imports from external libraries
+from pydantic import BaseModel
 
-class UserCredentials(SQLModel):
-    username: str = Form()
-    password: str = Form()
+# Imports from app modules
+from app.models.user import *
 
-class UserPublic(SQLModel):
-    id: int
-    username: str
+class UserResponseBase(BaseModel):
+    message: str
 
-class UserUpdate(SQLModel):
-    username: str | None = Form(default=None)
-    password: str | None = Form(default=None)
+class UserCreateRespoonse(UserResponseBase):
+    user: UserPublic
+
+class UserLoginResponse(UserResponseBase):
+    message: str
+    access_token: str
+    token_type: str
+
+class UserUpdateResponse(UserResponseBase):
+    message: str
+    user: UserPublic
+
+class UserDeleteResponse(UserResponseBase):
+    pass

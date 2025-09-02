@@ -1,22 +1,23 @@
-from sqlmodel import SQLModel
-# from typing import TYPE_CHECKING
-from datetime import datetime
+# Imports from external libraries
+from pydantic import BaseModel
 
-# if TYPE_CHECKING:
-from app.models.list_item import ListItem
+# Imports from app modules
+from app.models.list import *
 
-class ListCreate(SQLModel):
-    name: str
-    items: list['ListItem'] | None = None
+class ListResponseBase(BaseModel):
+    message: str
 
-class ListUpdate(SQLModel):
-    name: str | None = None
-    items: list['ListItem'] | None = None
+class ListCreateResponse(ListResponseBase):
+    list: ListPublic
 
-class ListPublic(SQLModel):
-    id: int
-    name: str
-    items: list['ListItem'] | None = None
-    created_at: datetime
-    last_modified_at: datetime
+class ListsRetrieveResponse(ListResponseBase):
+    lists: list['ListPublic'] | None
 
+class SingleListRetrieveResponse(ListResponseBase):
+    list: ListPublic
+
+class ListUpdateResponse(ListResponseBase):
+    list: ListPublic
+
+class ListDeleteResponse(ListResponseBase):
+    pass
