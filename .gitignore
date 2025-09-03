@@ -2,3 +2,4 @@ plan.md
 *.db
 .env
 __pycache__/
+todo.txt

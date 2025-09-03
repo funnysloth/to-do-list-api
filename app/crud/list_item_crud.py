@@ -2,21 +2,32 @@
 from sqlmodel import Session
 
 # Imports from app modules
-from app.models.list_item import ListItem, ListItemCreate, ListItemUpdate
+from app.models.list_item import ListItem, ListItemUpdate
 from app.models.list import List
 
 
-def create_list_item(session: Session, list_item: ListItemCreate, list_id: int) -> ListItem:
+def create_list_item(session: Session, list_item: str, list_id: int) -> ListItem:
     """
     Creates a new list item in the list and stores it in the db
     """
-    list_item_dict = list_item.model_dump()
+    list_item_dict = {}
+    list_item_dict["content"] = list_item
     list_item_dict["list_id"] = list_id
     db_list_item = ListItem.model_validate(list_item_dict)
     session.add(db_list_item)
     session.commit()
     session.refresh(db_list_item)
     return db_list_item
+
+
+def craete_multiple_list_items(session: Session, list_items: list[str], list_id: int) -> list[ListItem]:
+    """
+    Creates multiple list items in the list and stores them in the db
+    """
+    items : list['ListItem'] = []
+    for item in list_items:
+        items.append(create_list_item(session, item, list_id))
+    return items
 
 
 def get_list_item_by_id(list_item_id: int, list: List) -> ListItem | None:

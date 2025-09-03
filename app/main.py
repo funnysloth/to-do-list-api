@@ -11,7 +11,6 @@ from app.db import create_db_engine, create_db_and_tables
 from app.schemas.user import *
 from app.schemas.list import *
 from app.schemas.list_item import *
-from app.models.list_item import ListItemCreate
 import app.crud.user_crud as user_crud
 import app.crud.list_crud as list_crud
 import app.crud.list_item_crud as list_item_crud
@@ -40,7 +39,7 @@ async def lifespan(app: FastAPI):
     create_db_and_tables(db_engine)
     yield
 
-#Initialize app, db and essentials
+# Initialize app, db and essentials
 app = FastAPI(lifespan=lifespan)
 db_engine = create_db_engine()
 oath2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -53,6 +52,8 @@ def get_session():
     with Session(db_engine) as session:
         yield session
 
+
+# <---------- AUTH HELPER FUNCTIONS ---------->
 
 def create_access_token(user: UserPublic, expires_delta: timedelta | None = None) -> str:
     '''
@@ -87,6 +88,8 @@ def get_current_user(token: str = Header(), session: Session = Depends(get_sessi
         raise creds_ecxeption
     return user
 
+
+# <---------- USER RELATED ROUTES ---------->
 
 @app.post("/register", response_model=UserCreateRespoonse)
 def create_user(user: UserCredentials, session: Session = Depends(get_session)):
@@ -131,6 +134,8 @@ def delete_user(session: Session = Depends(get_session), current_user: User = De
     return UserDeleteResponse(message="User deleted successfully")
 
 
+# <--------- LIST RELATED ROUTES ---------->
+
 @app.post("/lists", response_model=ListCreateResponse)
 def create_list(
     list: ListCreate,
@@ -159,8 +164,8 @@ def get_lists(
 
 @app.get("/lists/{list_id}", response_model=SingleListRetrieveResponse)
 def get_list_by_Id(
-        list_id: int,
-        current_user: User = Depends(get_current_user)
+    list_id: int,
+    current_user: User = Depends(get_current_user)
 ):
     if not current_user:
         raise HTTPException(status_code=401, detail="Unathorized.")
@@ -185,7 +190,7 @@ def deelte_list(
 @app.post("/lists/{list_id}/items", response_model=ListItemsCreatedResponse)
 def create_list_item(
     list_id: int,
-    list_items: list[ListItemCreate],
+    list_items: list[str],
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
@@ -193,13 +198,12 @@ def create_list_item(
         raise HTTPException(status_code=401, detail="Unathorized.")
     if not list_crud.get_user_list_by_id(current_user, list_id):
         raise HTTPException(status_code=403, detail="Unathorized")
-    created_items: list['ListItemPublic'] = []
-    for item in list_items:
-        new_item = list_item_crud.create_list_item(session, item, list_id)
-        created_items.append(ListItemPublic.model_validate(new_item))
+    created_items = list_item_crud.craete_multiple_list_items(session, list_items, list_id)
+    public_items = [ListItemPublic.model_validate(item) for item in created_items]
+    return ListItemsCreatedResponse(message="List items created successfully", list_items=public_items)
 
-    return ListItemsCreatedResponse(message="List items created successfully", list_items=created_items)
 
+# <--------- LIST ITEM RELATED ROUTES ---------->
 
 @app.get("/lists/{list_id}/items", response_model=ListItemsRetrievedResponse)
 def get_list_items(

@@ -4,6 +4,7 @@ from sqlmodel import select, Session
 # Imports from app modules
 from app.models.list import List, ListCreate, ListUpdate
 from app.models.user import User
+from app.crud.list_item_crud import craete_multiple_list_items
 
 def get_list_by_id(session: Session, id: int) -> List | None:
     """Get a list by its ID."""
@@ -18,9 +19,13 @@ def create_list(session: Session, list: ListCreate, user_id: int) -> List:
     session.add(db_list)
     session.commit()
     session.refresh(db_list)
+    if list.list_items:
+        craete_multiple_list_items(session, list.list_items, db_list.id) #type:ignore
+    session.refresh(db_list)
     return db_list
 
 def update_list(session: Session, list: List, list_updates:ListUpdate) -> List:
+
     """Update a list."""
     new_list_data = list_updates.model_dump(exclude_unset=True)
     list.sqlmodel_update(new_list_data)
