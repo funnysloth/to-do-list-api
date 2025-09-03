@@ -5,10 +5,10 @@ from sqlmodel import Field, SQLModel, Relationship
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from app.models.list_item import ListItem, ListItemCreate, ListItemUpdate
 # Imports for type checking
 if TYPE_CHECKING:
     from app.models.user import User
-    from app.models.list_item import ListItem
 
 class List(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -23,11 +23,11 @@ class List(SQLModel, table=True):
     
 class ListCreate(SQLModel):
     name: str
-    list_items: list['ListItem'] | None = None
+    list_items: list['ListItemCreate'] | None = None
 
 class ListUpdate(SQLModel):
     name: str | None = None
-    list_items: list['ListItem'] | None = None
+    list_items: list['ListItemUpdate'] | None = None
 
 class ListPublic(SQLModel):
     id: int

@@ -11,6 +11,7 @@ from app.db import create_db_engine, create_db_and_tables
 from app.schemas.user import *
 from app.schemas.list import *
 from app.schemas.list_item import *
+from app.models.list_item import ListItemCreate
 import app.crud.user_crud as user_crud
 import app.crud.list_crud as list_crud
 import app.crud.list_item_crud as list_item_crud
@@ -101,9 +102,9 @@ def login(user: UserCredentials, session: Session = Depends(get_session)):
     try:
         authenticated_user = user_crud.authenticacte_user(session, user)
     except UserNotFoundException as e:
-        raise HTTPException(status_code=404, detail = e)
+        raise HTTPException(status_code=404, detail=str(e))
     except InvalidCredentialsException as e:
-        raise HTTPException(status_code=400, detail=e)
+        raise HTTPException(status_code=400, detail=str(e))
     else:
         access_token_expires = timedelta(minutes=JWT_EXPIRATION_MINUTES)
         access_token = create_access_token(UserPublic.model_validate(authenticated_user), access_token_expires)
@@ -118,6 +119,8 @@ def update_user(
 ):
     if not current_user:
         raise HTTPException(status_code=401, detail="You are not authenticated.")
+    if user.username and user_crud.get_user_by_username(session, user.username):
+        raise HTTPException(status_code=400, detail="The user with such a username already exists.")
     updated_user = user_crud.update_user(session, current_user, user)
     return UserUpdateResponse(message="user updated successfully", user=UserPublic.model_validate(updated_user))
 
@@ -182,7 +185,7 @@ def deelte_list(
 @app.post("/lists/{list_id}/items", response_model=ListItemsCreatedResponse)
 def create_list_item(
     list_id: int,
-    list_items: list['ListItemCreate'],
+    list_items: list[ListItemCreate],
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):

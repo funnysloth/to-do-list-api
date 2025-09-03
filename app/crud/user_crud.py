@@ -3,8 +3,7 @@ from sqlmodel import select, Session
 from passlib.context import CryptContext
 
 # Imports from app modules
-from app.models.user import User
-from app.schemas.user import UserCredentials, UserUpdate
+from app.models.user import User, UserCredentials, UserUpdate
 from app.exceptions import UserNotFoundException, InvalidCredentialsException
 
 pwd_context =  CryptContext(schemes=["sha256_crypt"])
@@ -55,6 +54,8 @@ def update_user(session: Session, user: User, updated_data: UserUpdate) -> User:
     '''
     Updates a user in the database.
     '''
+    if updated_data.password:
+        updated_data.password = get_password_hash(updated_data.password)
     new_user_data = updated_data.model_dump(exclude_unset=True)
     user.sqlmodel_update(new_user_data)
     session.add(user)

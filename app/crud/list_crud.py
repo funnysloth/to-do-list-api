@@ -2,11 +2,7 @@
 from sqlmodel import select, Session
 
 # Imports from app modules
-from app.models.list import List
-from app.schemas.list import ListCreate, ListUpdate
-
-# Imports for type checking
-
+from app.models.list import List, ListCreate, ListUpdate
 from app.models.user import User
 
 def get_list_by_id(session: Session, id: int) -> List | None:
