@@ -1,5 +1,6 @@
 # Imports from external libraries
-from sqlmodel import select, Session
+from sqlmodel import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
 
 # Imports from app modules
@@ -9,11 +10,19 @@ from app.exceptions import UserNotFoundException, InvalidCredentialsException
 pwd_context =  CryptContext(schemes=["sha256_crypt"])
 
 
-def get_user_by_username(session: Session, username: str) -> User | None :
+async def get_user_by_username(session: AsyncSession, username: str) -> User | None :
     '''
     Selects a user from the database by their username.
     '''
-    return session.exec(select(User).where(User.username == username)).first()
+    result = await session.execute(select(User).where(User.username == username))
+    return result.scalars().first()
+
+async def get_user_by_id(session: AsyncSession, user_id: int) -> User | None :
+    '''
+    Selects a user from the database by their id.
+    '''
+    result = await session.execute(select(User).where(User.id == user_id))
+    return result.scalars().first()
 
 def get_password_hash(password: str) -> str:
     '''
@@ -27,22 +36,22 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     '''
     return pwd_context.verify(plain_password, hashed_password)
 
-def create_user(session: Session, user: User) -> User:
+async def create_user(session: AsyncSession, user: User) -> User:
     '''
     Creates a new user in the database.
     '''
     extra_data = {"password": get_password_hash(user.password)}
     user.sqlmodel_update(extra_data)
     session.add(user)
-    session.commit()
-    session.refresh(user)
+    await session.commit()
+    await session.refresh(user)
     return user
 
-def authenticacte_user(session: Session, user: UserCredentials) -> User | None:
+async def authenticacte_user(session: AsyncSession, user: UserCredentials) -> User:
     '''
     Authenticates a user by their username and password.
     '''
-    found_user = get_user_by_username(session, user.username)
+    found_user = await get_user_by_username(session, user.username)
     if not found_user:
         raise UserNotFoundException("Invalid username.")
     if not verify_password(user.password, found_user.password):
@@ -50,7 +59,7 @@ def authenticacte_user(session: Session, user: UserCredentials) -> User | None:
     return found_user
 
 
-def update_user(session: Session, user: User, updated_data: UserUpdate) -> User:
+async def update_user(session: AsyncSession, user: User, updated_data: UserUpdate) -> User:
     '''
     Updates a user in the database.
     '''
@@ -59,13 +68,13 @@ def update_user(session: Session, user: User, updated_data: UserUpdate) -> User:
     new_user_data = updated_data.model_dump(exclude_unset=True)
     user.sqlmodel_update(new_user_data)
     session.add(user)
-    session.commit()
-    session.refresh(user)
+    await session.commit()
+    await session.refresh(user)
     return user
 
-def delete_user(session: Session, user: User) -> None:
+async def delete_user(session: AsyncSession, user: User) -> None:
     '''
     Deletes a user from the database.
     '''
-    session.delete(user)
-    session.commit()
+    await session.delete(user)
+    await session.commit()

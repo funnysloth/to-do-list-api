@@ -13,6 +13,7 @@ from datetime import datetime
 class ListItem(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     created_at: datetime = Field(default=datetime.now())
+    content: str
     last_modified_at: datetime = Field(default=datetime.now())
     is_completed: bool = Field(default=False)
     list_id: int = Field(foreign_key="list.id", ondelete="CASCADE")
@@ -25,6 +26,7 @@ class ListItemUpdate(SQLModel):
 
 class ListItemPublic(SQLModel):
     id: int
+    content: str
     created_at: datetime
     last_modified_at: datetime
     is_completed: bool

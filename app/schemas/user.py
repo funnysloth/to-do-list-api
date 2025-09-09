@@ -12,8 +12,6 @@ class UserCreateRespoonse(UserResponseBase):
 
 class UserLoginResponse(UserResponseBase):
     message: str
-    access_token: str
-    token_type: str
 
 class UserUpdateResponse(UserResponseBase):
     message: str

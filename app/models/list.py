@@ -4,8 +4,9 @@ from sqlmodel import Field, SQLModel, Relationship
 # Imports from standard library
 from datetime import datetime
 from typing import TYPE_CHECKING
+from enum import Enum
 
-from app.models.list_item import ListItem, ListItemUpdate
+from app.models.list_item import ListItem, ListItemUpdate, ListItemPublic
 # Imports for type checking
 if TYPE_CHECKING:
     from app.models.user import User
@@ -32,6 +33,14 @@ class ListUpdate(SQLModel):
 class ListPublic(SQLModel):
     id: int
     name: str
-    list_items: list['ListItem'] | None = None
+    list_items: list['ListItemPublic'] | None = None
     created_at: datetime
     last_modified_at: datetime
+
+class SortBy(str, Enum):
+    sort_name = "name"
+    created_at = "created_at"
+
+class SortOrder(str, Enum):
+    asc = "asc"
+    desc = "desc"

@@ -1,6 +1,6 @@
 # Imports from external libraries
-from sqlmodel import SQLModel, create_engine, text
-from sqlalchemy.engine import Engine
+from sqlmodel import SQLModel, text
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
 
 # Imports from app modules
 from app.models import *
@@ -8,6 +8,7 @@ from app.models import *
 # Imports from standard library
 import os
 from dotenv import load_dotenv
+import asyncio
 
 # load environment variables
 load_dotenv()
@@ -21,20 +22,20 @@ def create_db_engine():
     Creates a database engine using the provided DB_URL.
     '''
     connect_args = {"check_same_thread": False}
-    return create_engine(DB_URL, echo=True, connect_args=connect_args)
+    return create_async_engine(DB_URL, echo=True, connect_args=connect_args)
 
-def create_db_and_tables(engine: Engine):
+async def create_db_and_tables(engine: AsyncEngine):
     '''
     Creates the database and all tables defined in the models.
     '''
-    SQLModel.metadata.create_all(engine)
-    with engine.connect() as connection:
-        connection.execute(text("PRAGMA foreign_keys=ON"))
+    async with engine.begin() as connection:
+        await connection.run_sync(SQLModel.metadata.create_all)
+        await connection.execute(text("PRAGMA foreign_keys=ON"))
 
-def main():
+async def main():
     engine = create_db_engine()
-    create_db_and_tables(engine)
+    await create_db_and_tables(engine)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
