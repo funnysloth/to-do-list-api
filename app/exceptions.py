@@ -15,9 +15,3 @@ class ListNotFoundException(Exception):
     Exception to throw when the list wasn't found in the user's lists.
     """
     pass
-
-class ListItemNotFoundException(Exception):
-    """
-    Exception to throw when the list item wasn't found in the list.
-    """
-    pass

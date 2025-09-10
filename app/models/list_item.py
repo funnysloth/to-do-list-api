@@ -12,9 +12,9 @@ from datetime import datetime
 
 class ListItem(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    created_at: datetime = Field(default=datetime.now())
+    created_at: datetime = Field(default_factory=datetime.now)
     content: str
-    last_modified_at: datetime = Field(default=datetime.now())
+    last_modified_at: datetime = Field(default_factory=datetime.now)
     is_completed: bool = Field(default=False)
     list_id: int = Field(foreign_key="list.id", ondelete="CASCADE")
 

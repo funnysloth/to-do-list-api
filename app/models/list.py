@@ -14,8 +14,8 @@ if TYPE_CHECKING:
 class List(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str
-    created_at: datetime = Field(default=datetime.now())
-    last_modified_at: datetime = Field(default=datetime.now())
+    created_at: datetime = Field(default_factory=datetime.now)
+    last_modified_at: datetime = Field(default_factory=datetime.now)
     user_id: int = Field(foreign_key="user.id", ondelete="CASCADE")
 
     user: 'User' = Relationship(back_populates="lists")

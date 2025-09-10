@@ -183,8 +183,6 @@ async def create_list(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    if not current_user:
-        raise HTTPException(status_code=401, detail="You are not authenticated.")
     new_list = await list_crud.create_list(session, list, current_user.id)
     return ListCreateResponse(message="List created successfully", list=ListPublic.model_validate(new_list))
 
@@ -196,26 +194,21 @@ async def get_lists(
     name : str | None = None,
     sort_by: SortBy | None = None,
     sort_order: SortOrder | None = None
-):
-    if current_user.lists is None:
-        return ListsRetrieveResponse(message="You haven't created any list yet", lists=[])
-    if len(current_user.lists) == 0:
-        return ListsRetrieveResponse(message="You haven't created any list yet", lists=[])
-    if name:
-        lists = await list_crud.get_user_lists_by_name(session, name, current_user.id, sort_by, sort_order)
-    else:
-        lists = await list_crud.get_user_lists(session, current_user.id, sort_by, sort_order)
+):        
+    lists = await list_crud.get_user_lists(session, current_user.id, name, sort_by, sort_order)
+    if len(lists) == 0:
+        return ListsRetrieveResponse(message="There are no lists.", lists=[])
     lists_public = [ListPublic.model_validate(lst) for lst in lists or []]
     return ListsRetrieveResponse(message="Lists retrieved successfully", lists=lists_public)
 
 
 @app.get("/lists/{list_id}", response_model=SingleListRetrieveResponse)
-def get_list_by_Id(
+async def get_list_by_Id(
     list_id: int,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    found_list = list_crud.get_user_list_by_id(current_user, list_id)
+    found_list = await list_crud.get_user_list_by_id(session, current_user.id, list_id)
     if not found_list:
         raise HTTPException(status_code=404, detail="The list with such an id wasn't found within user lists.")
     return SingleListRetrieveResponse(message="List retrieved successfully", list=ListPublic.model_validate(found_list))
@@ -227,10 +220,10 @@ async def delete_list(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    try:
-        await list_crud.delete_list(session, list_id, current_user)
-    except ListNotFoundException:
+    found_list = await list_crud.get_user_list_by_id(session, current_user.id, list_id)
+    if not found_list:
         raise HTTPException(status_code=404, detail="The list with such an id wasn't found within user lists.")
+    await list_crud.delete_list(session, found_list)
     return ListDeleteResponse(message="List deleted successfully")
 
 
@@ -241,10 +234,10 @@ async def create_list_item(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    found_list = list_crud.get_user_list_by_id(current_user, list_id)
+    found_list = await list_crud.get_user_list_by_id(session, current_user.id, list_id)
     if not found_list:
         raise HTTPException(status_code=404, detail="No list with such an id was found within user lists")
-    created_items = await list_item_crud.craete_multiple_list_items(session, list_items, found_list)
+    created_items = await list_item_crud.craete_list_itemss(session, list_items, found_list)
     public_items = [ListItemPublic.model_validate(item) for item in created_items]
     return ListItemsCreatedResponse(message="List items created successfully", list_items=public_items)
 
@@ -252,33 +245,24 @@ async def create_list_item(
 # <--------- LIST ITEM RELATED ROUTES ---------->
 
 @app.get("/lists/{list_id}/items", response_model=ListItemsRetrievedResponse)
-def get_list_items(
+async def get_list_items(
     list_id: int,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    list = list_crud.get_user_list_by_id(current_user, list_id)
-    if not list:
-        raise HTTPException(status_code=404, detail="Couldn't find the specified list.")
-    if list.list_items is None:
-        return ListItemsRetrievedResponse(message="There are no items in this list.", list_items=[])
-    if len(list.list_items) == 0:
-        return ListItemsRetrievedResponse(message="There are no items in this list.", list_items=[])
-    list_items_public = [ListItemPublic.model_validate(item) for item in list.list_items or []]
+    list_items = await list_item_crud.get_list_items(session, list_id, current_user.id)
+    list_items_public = [ListItemPublic.model_validate(item) for item in list_items or []]
     return ListItemsRetrievedResponse(message="List items retrieved successfully", list_items=list_items_public)
 
 
 @app.get("/lists/{list_id}/items/{list_item_id}", response_model=ListItemRetrievedResponse)
-def get_list_item(
+async def get_list_item(
     list_id: int,
     list_item_id: int,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    list = list_crud.get_user_list_by_id(current_user, list_id)
-    if not list:
-        raise HTTPException(status_code=404, detail="Couldn't find the specified list.")
-    list_item = list_item_crud.get_list_item_by_id(list_item_id, list)
+    list_item = await list_item_crud.get_list_item_by_id(session, list_item_id, list_id, current_user.id)
     if not list_item:
         raise HTTPException(status_code=404, detail="Couldn't find the specified list item.")
     return ListItemRetrievedResponse(message="List item retrieved successfully", list_item=ListItemPublic.model_validate(list_item))
@@ -292,14 +276,10 @@ async def update_list_item(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    if not current_user:
-        raise HTTPException(status_code=401, detail="You are not authenticated..")
-    list = list_crud.get_user_list_by_id(current_user, list_id)
-    if not list:
-        raise HTTPException(status_code=404, detail="Couldn't find the specified list.")
-    updated_liat_item = await list_item_crud.update_list_item(session, list_item_id, list, list_item)
-    if updated_liat_item is None:
-        raise HTTPException(status_code=404, detail="Couldn't find the specified list item.")
+    found_list_item = await list_item_crud.get_list_item_by_id(session, list_item_id, list_id, current_user.id)
+    if found_list_item is None:
+        raise HTTPException(status_code=404, detail="Couldn't find the specified list item in the specified list.")
+    updated_liat_item = await list_item_crud.update_list_item(session, found_list_item, found_list_item.list, list_item)
     return ListItemUpdateResponse(message="List item updated successfully", list_item=ListItemPublic.model_validate(updated_liat_item))
 
 
@@ -310,13 +290,8 @@ async def delete_list_item(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    if not current_user:
-        raise HTTPException(status_code=401, detail="You are not authenticated..")
-    list = list_crud.get_user_list_by_id(current_user, list_id)
-    if not list:
-        raise HTTPException(status_code=404, detail="Couldn't find the specified list.")
-    try:
-        await list_item_crud.delete_list_Item(session, list_item_id, list)
-    except ListItemNotFoundException:
-        raise HTTPException(status_code=404, detail="Couldn't find the specified list item.")
+    found_list_item = await list_item_crud.get_list_item_by_id(session, list_item_id, list_id, current_user.id)
+    if found_list_item is None:
+        raise HTTPException(status_code=404, detail="Couldn't find the specified list item in the specified list.")
+    await list_item_crud.delete_list_Item(session, found_list_item)
     return ListItemDeletedResponse(message="List item deleted successfully")
