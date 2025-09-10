@@ -7,7 +7,7 @@ from app.models.user import *
 class UserResponseBase(BaseModel):
     message: str
 
-class UserCreateRespoonse(UserResponseBase):
+class UserCreateResponse(UserResponseBase):
     user: UserPublic
 
 class UserLoginResponse(UserResponseBase):

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from enum import Enum
 
 from app.models.list_item import ListItem, ListItemUpdate, ListItemPublic
+
 # Imports for type checking
 if TYPE_CHECKING:
     from app.models.user import User

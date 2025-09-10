@@ -47,7 +47,7 @@ async def create_user(session: AsyncSession, user: User) -> User:
     await session.refresh(user)
     return user
 
-async def authenticacte_user(session: AsyncSession, user: UserCredentials) -> User:
+async def authenticate_user(session: AsyncSession, user: UserCredentials) -> User:
     '''
     Authenticates a user by their username and password.
     '''

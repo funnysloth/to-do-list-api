@@ -10,7 +10,7 @@ from app.models.list import List
 from datetime import datetime
 
 
-async def craete_list_itemss(session: AsyncSession, list_items: list[str], to_do_list: List) -> list[ListItem]:
+async def craete_list_items(session: AsyncSession, list_items: list[str], to_do_list: List) -> list[ListItem]:
     """
     Creates list items in the list and stores them in the db
     """
@@ -66,7 +66,7 @@ async def update_list_item(session: AsyncSession, list_item: ListItem, list: Lis
     return list_item
 
 
-async def delete_list_Item(session: AsyncSession, list_item: ListItem) -> None:
+async def delete_list_item(session: AsyncSession, list_item: ListItem) -> None:
     """
     Deletes the list item by its id within the list.
     """
