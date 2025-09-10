@@ -2,7 +2,6 @@
 from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordBearer
 from contextlib import asynccontextmanager
-from sqlalchemy.ext.asyncio import AsyncSession
 
 # Imports from app modules
 from app.db import create_db_engine, create_db_and_tables
@@ -23,14 +22,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 db_engine = create_db_engine()
 oath2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
-async def get_session():
-    '''
-    handles session dependency.
-    Yields a session, that way one session per request restraint is guaranteed
-    '''
-    async with AsyncSession(db_engine) as session:
-        yield session
 
 
 # <---------- ROUTES ---------->

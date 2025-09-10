@@ -6,10 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.list import *
 import app.crud.list_crud as list_crud
 from app.models.user import User
-from app.main import get_session
+from app.db import get_session
 from app.utils import *
 
-router = APIRouter(prefix="/lists", tags=["lists"])
+router = APIRouter(prefix="/lists", tags=["Lists"])
 
 
 @router.post("", response_model=ListCreateResponse)
@@ -33,7 +33,7 @@ async def get_lists(
     lists = await list_crud.get_user_lists(session, current_user.id, name, sort_by, sort_order)
     if len(lists) == 0:
         return ListsRetrieveResponse(message="There are no lists.", lists=[])
-    lists_public = [ListPublic.model_validate(lst) for lst in lists or []]
+    lists_public = [ListPublic.model_validate(list) for list in lists]
     return ListsRetrieveResponse(message="Lists retrieved successfully", lists=lists_public)
 
 

@@ -21,7 +21,8 @@ class List(SQLModel, table=True):
 
     user: 'User' = Relationship(back_populates="lists")
     list_items: list['ListItem'] | None = Relationship(back_populates="list", 
-                                                       cascade_delete=True)
+                                                       cascade_delete=True, 
+                                                       sa_relationship_kwargs={"lazy": "selectin"})
     
 class ListCreate(SQLModel):
     name: str

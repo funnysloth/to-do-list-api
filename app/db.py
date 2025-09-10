@@ -1,6 +1,6 @@
 # Imports from external libraries
 from sqlmodel import SQLModel, text
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine, AsyncSession
 
 # Imports from app modules
 from app.models import *
@@ -8,7 +8,6 @@ from app.models import *
 # Imports from standard library
 import os
 from dotenv import load_dotenv
-import asyncio
 
 # load environment variables
 load_dotenv()
@@ -24,6 +23,7 @@ def create_db_engine():
     connect_args = {"check_same_thread": False}
     return create_async_engine(DB_URL, echo=True, connect_args=connect_args)
 
+
 async def create_db_and_tables(engine: AsyncEngine):
     '''
     Creates the database and all tables defined in the models.
@@ -32,10 +32,14 @@ async def create_db_and_tables(engine: AsyncEngine):
         await connection.run_sync(SQLModel.metadata.create_all)
         await connection.execute(text("PRAGMA foreign_keys=ON"))
 
-async def main():
-    engine = create_db_engine()
-    await create_db_and_tables(engine)
+async def get_session():
+    '''
+    handles session dependency.
+    Yields a session, that way one session per request restraint is guaranteed
+    '''
+    async with AsyncSession(db_engine) as session:
+        yield session
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+
+db_engine = create_db_engine()

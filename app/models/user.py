@@ -17,7 +17,8 @@ class User(SQLModel, table=True):
     password: str
 
     lists: list['List'] | None = Relationship(back_populates="user", 
-                                                cascade_delete=True)
+                                                cascade_delete=True,
+                                                sa_relationship_kwargs={"lazy": "selectin"})
     
 class UserCredentials(SQLModel):
     username: str = Form()

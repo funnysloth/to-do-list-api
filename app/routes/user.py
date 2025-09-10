@@ -7,7 +7,7 @@ from app.schemas.user import *
 import app.crud.user_crud as user_crud
 from app.models.user import User
 from app.exceptions import *
-from app.main import get_session
+from app.db import get_session
 from app.utils import *
 
 # Imports from standard library
@@ -16,7 +16,7 @@ import re
 # CONSTANTS
 PASSWORD_REGEX = re.compile(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^\w\s])\S{8,}$')
 
-router = APIRouter(prefix="", tags=["users"])
+router = APIRouter(prefix="", tags=["Users"])
 
 @router.post("/register", response_model=UserCreateResponse)
 async def create_user(user: UserCredentials, session: AsyncSession = Depends(get_session)):

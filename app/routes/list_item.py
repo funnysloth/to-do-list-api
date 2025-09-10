@@ -6,10 +6,10 @@ from app.schemas.list_item import *
 import app.crud.list_crud as list_crud
 import app.crud.list_item_crud as list_item_crud
 from app.models.user import User
-from app.main import get_session
+from app.db import get_session
 from app.utils import *
 
-router = APIRouter(prefix="/lists{list_id}/items", tags=["lists"])
+router = APIRouter(prefix="/lists{list_id}/items", tags=["List items"])
 
 @router.post("", response_model=ListItemsCreatedResponse)
 async def create_list_item(

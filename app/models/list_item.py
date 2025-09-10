@@ -18,7 +18,7 @@ class ListItem(SQLModel, table=True):
     is_completed: bool = Field(default=False)
     list_id: int = Field(foreign_key="list.id", ondelete="CASCADE")
 
-    list: 'List' = Relationship(back_populates="list_items")
+    list: 'List' = Relationship(back_populates="list_items", sa_relationship_kwargs={"lazy": "selectin"})
 
 class ListItemUpdate(SQLModel):
     content: str | None = None

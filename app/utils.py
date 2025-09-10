@@ -6,7 +6,7 @@ from jwt.exceptions import InvalidTokenError
 # Imports from app modules
 import app.crud.user_crud as user_crud
 from app.models.user import User, UserPublic
-from app.main import get_session
+from app.db import get_session
 
 # Imports from standard library
 from datetime import datetime, timedelta, timezone
@@ -57,8 +57,8 @@ async def get_current_user(request: Request, response: Response, session: AsyncS
     creds_ecxeption = HTTPException(status_code=401,
                                     detail="invaliid or expired access token.")
     access_token = request.cookies.get("access_token", "")
-    if not access_token:
-        raise HTTPException(status_code=401, detail="You are not authenticated.")
+    # if not access_token:
+    #     raise HTTPException(status_code=401, detail="You are not authenticated.")
     try:
         payload = jwt.decode(access_token, JWT_SECRET, algorithms=[JWT_ALGORITHM]) #type: ignore
         username = payload.get("username")
