@@ -1,23 +1,12 @@
-# Imports from external libraries
-from pydantic import BaseModel
-
 # Imports from app modules
 from app.models.list import *
+from app.schemas.list_item import ListItemUpdate
 
-class ListResponseBase(BaseModel):
-    message: str
 
-class ListCreateResponse(ListResponseBase):
-    list: ListPublic
+class ListCreate(SQLModel):
+    name: str
+    list_items: list[str] | None = None
 
-class ListsRetrieveResponse(ListResponseBase):
-    lists: list['ListPublic'] | None
-
-class SingleListRetrieveResponse(ListResponseBase):
-    list: ListPublic
-
-class ListUpdateResponse(ListResponseBase):
-    list: ListPublic
-
-class ListDeleteResponse(ListResponseBase):
-    pass
+class ListUpdate(SQLModel):
+    name: str | None = None
+    list_items: list['ListItemUpdate'] | None = None

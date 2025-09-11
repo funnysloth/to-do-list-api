@@ -4,25 +4,14 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine, AsyncSessio
 
 # Imports from app modules
 from app.models import *
-
-# Imports from standard library
-import os
-from dotenv import load_dotenv
-
-# load environment variables
-load_dotenv()
-
-DB_URL = os.getenv("DB_URL") or ""
-if not DB_URL:
-    raise ValueError("DB_URL environment varibale is not set.")
+from app.config import settings
 
 def create_db_engine():
     '''
     Creates a database engine using the provided DB_URL.
     '''
     connect_args = {"check_same_thread": False}
-    return create_async_engine(DB_URL, echo=True, connect_args=connect_args)
-
+    return create_async_engine(settings.DB_URL, echo=True, connect_args=connect_args)
 
 async def create_db_and_tables(engine: AsyncEngine):
     '''
@@ -39,7 +28,5 @@ async def get_session():
     '''
     async with AsyncSession(db_engine) as session:
         yield session
-
-
 
 db_engine = create_db_engine()

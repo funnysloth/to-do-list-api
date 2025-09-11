@@ -4,11 +4,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
 
 # Imports from app modules
-from app.models.user import User, UserCredentials, UserUpdate
+from app.models.user import User
+from app.schemas.user import UserCredentials, UserUpdate
 from app.exceptions import UserNotFoundException, InvalidCredentialsException
 
 pwd_context =  CryptContext(schemes=["sha256_crypt"])
 
+async def create_user(session: AsyncSession, user: User) -> User:
+    '''
+    Creates a new user in the database.
+    '''
+    extra_data = {"password": get_password_hash(user.password)}
+    user.sqlmodel_update(extra_data)
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return user
 
 async def get_user_by_username(session: AsyncSession, username: str) -> User | None :
     '''
@@ -36,17 +47,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     '''
     return pwd_context.verify(plain_password, hashed_password)
 
-async def create_user(session: AsyncSession, user: User) -> User:
-    '''
-    Creates a new user in the database.
-    '''
-    extra_data = {"password": get_password_hash(user.password)}
-    user.sqlmodel_update(extra_data)
-    session.add(user)
-    await session.commit()
-    await session.refresh(user)
-    return user
-
 async def authenticate_user(session: AsyncSession, user: UserCredentials) -> User:
     '''
     Authenticates a user by their username and password.
@@ -57,7 +57,6 @@ async def authenticate_user(session: AsyncSession, user: UserCredentials) -> Use
     if not verify_password(user.password, found_user.password):
         raise InvalidCredentialsException("Invalid password.")
     return found_user
-
 
 async def update_user(session: AsyncSession, user: User, updated_data: UserUpdate) -> User:
     '''

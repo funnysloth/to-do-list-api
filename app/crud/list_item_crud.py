@@ -3,7 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 # Imports from app modules
-from app.models.list_item import ListItem, ListItemUpdate
+from app.models.list_item import ListItem
+from app.schemas.list_item import ListItemUpdate
 from app.models.list import List
 
 # Imports from standard library
@@ -17,7 +18,7 @@ async def craete_list_items(session: AsyncSession, list_items: list[str], to_do_
     items : list['ListItem'] = []
 
     for item in list_items:
-        list_item_dict ={}
+        list_item_dict = {}
         list_item_dict["content"] = item
         list_item_dict["list_id"] = to_do_list.id
         db_list_item = ListItem.model_validate(list_item_dict)
@@ -37,7 +38,8 @@ async def get_list_items(session: AsyncSession, list_id: int, user_id: int) -> l
     """
     Retrieves and returns all list items within the list of the user.
     """
-    list_items = await session.execute(select(ListItem).where(ListItem.list_id == list_id, ListItem.list.user_id == user_id))
+    list_items = await session.execute(select(ListItem).where(ListItem.list_id == list_id,
+                                                                ListItem.list.user_id == user_id))
     return list(list_items.scalars().all())
 
 
@@ -45,14 +47,20 @@ async def get_list_item_by_id(session: AsyncSession, list_item_id: int, list_id:
     """
     Searches for the list item by its id within the list and returns it if found, otherwise returns None
     """
-    list_item = await session.execute(select(ListItem).where(ListItem.id == list_item_id, ListItem.list_id == list_id, ListItem.list.user_id == user_id))
+    list_item = await session.execute(select(ListItem).where(ListItem.id == list_item_id,
+                                                                ListItem.list_id == list_id,
+                                                                ListItem.list.user_id == user_id))
     return list_item.scalars().first()
 
 
-async def update_list_item(session: AsyncSession, list_item: ListItem, list: List, updated_list_item: ListItemUpdate) -> ListItem | None:
+async def update_list_item(
+        session: AsyncSession,
+        list_item: ListItem, 
+        list: List, 
+        updated_list_item: ListItemUpdate
+) -> ListItem:
     """
     Updates the list item by its id within the list and save it in the database.
-    Returns the updated list item if successful, otherwise returns None.
     """
     new_data = updated_list_item.model_dump(exclude_unset=True)
     list_item.sqlmodel_update(new_data)

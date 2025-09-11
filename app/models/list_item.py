@@ -20,10 +20,6 @@ class ListItem(SQLModel, table=True):
 
     list: 'List' = Relationship(back_populates="list_items", sa_relationship_kwargs={"lazy": "selectin"})
 
-class ListItemUpdate(SQLModel):
-    content: str | None = None
-    is_completed: bool | None = None
-
 class ListItemPublic(SQLModel):
     id: int
     content: str

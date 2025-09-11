@@ -1,17 +1,11 @@
 class UserNotFoundException(Exception):
-    '''
-    Exception to throw when the user with the defined username wasn't found in the databse.
-    '''
+    """
+    Exception raised when a user is not found in the database.
+    """
     pass
 
 class InvalidCredentialsException(Exception):
-    '''
-    Exception to throw when the password provided in login process is invalid for the user with the defined username
-    '''
-    pass
-
-class ListNotFoundException(Exception):
     """
-    Exception to throw when the list wasn't found in the user's lists.
+    Exception raised when invalid credentials are provided during authentication.
     """
     pass

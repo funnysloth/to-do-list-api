@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from enum import Enum
 
-from app.models.list_item import ListItem, ListItemUpdate, ListItemPublic
+from app.models.list_item import ListItem, ListItemPublic
 
 # Imports for type checking
 if TYPE_CHECKING:
@@ -23,14 +23,6 @@ class List(SQLModel, table=True):
     list_items: list['ListItem'] | None = Relationship(back_populates="list", 
                                                        cascade_delete=True, 
                                                        sa_relationship_kwargs={"lazy": "selectin"})
-    
-class ListCreate(SQLModel):
-    name: str
-    list_items: list[str] | None = None
-
-class ListUpdate(SQLModel):
-    name: str | None = None
-    list_items: list['ListItemUpdate'] | None = None
 
 class ListPublic(SQLModel):
     id: int
