@@ -11,7 +11,7 @@ from app.models.list import List
 from datetime import datetime
 
 
-async def craete_list_items(session: AsyncSession, list_items: list[str], to_do_list: List) -> list[ListItem]:
+async def create_list_items(session: AsyncSession, list_items: list[str], to_do_list: List) -> list[ListItem]:
     """
     Creates list items in the list and stores them in the db
     """
@@ -29,27 +29,26 @@ async def craete_list_items(session: AsyncSession, list_items: list[str], to_do_
     session.add(to_do_list)
     await session.commit()
     await session.refresh(to_do_list)
-    await session.refresh(items)
     
     return items
 
 
 async def get_list_items(session: AsyncSession, list_id: int, user_id: int) -> list['ListItem']:
     """
-    Retrieves and returns all list items within the list of the user.
+    Retrieve and return all list items within the user's list.
     """
-    list_items = await session.execute(select(ListItem).where(ListItem.list_id == list_id,
-                                                                ListItem.list.user_id == user_id))
+    list_items = await session.execute(select(ListItem).join(List).where(ListItem.list_id == list_id,
+                                                                         List.user_id == user_id))
     return list(list_items.scalars().all())
 
 
 async def get_list_item_by_id(session: AsyncSession, list_item_id: int, list_id: int, user_id: int) -> ListItem | None:
     """
-    Searches for the list item by its id within the list and returns it if found, otherwise returns None
+    Search for a list item by its ID within the list and return it if found; otherwise, return None.
     """
-    list_item = await session.execute(select(ListItem).where(ListItem.id == list_item_id,
-                                                                ListItem.list_id == list_id,
-                                                                ListItem.list.user_id == user_id))
+    list_item = await session.execute(select(ListItem).join(List).where(ListItem.id == list_item_id,
+                                                                         ListItem.list_id == list_id,
+                                                                         List.user_id == user_id))
     return list_item.scalars().first()
 
 

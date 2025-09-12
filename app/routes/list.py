@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.list import *
 from app.schemas.base import *
 import app.crud.list_crud as list_crud
+import app.crud.list_item_crud as list_items_crud
 from app.models.user import User
 from app.db import get_session
 from app.utils import *
@@ -20,6 +21,9 @@ async def create_list(
     current_user: User = Depends(get_current_user)
 ):
     new_list = await list_crud.create_list(session, list, current_user.id)
+    if list.list_items:
+        await list_items_crud.create_list_items(session, list.list_items, new_list)
+        await session.refresh(new_list)
     return ResponseWithData(message="List created successfully", data=ListPublic.model_validate(new_list))
 
 

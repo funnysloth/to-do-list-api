@@ -11,4 +11,3 @@ class UserCredentials(SQLModel):
 class UserUpdate(SQLModel):
     username: str | None = Form(default=None)
     password: str | None = Form(default=None)
-    message: str

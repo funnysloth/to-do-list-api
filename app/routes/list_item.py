@@ -22,7 +22,7 @@ async def create_list_item(
     found_list = await list_crud.get_user_list_by_id(session, current_user.id, list_id)
     if not found_list:
         raise HTTPException(status_code=404, detail="No list with such an id was found within user lists")
-    created_items = await list_item_crud.craete_list_items(session, list_items, found_list)
+    created_items = await list_item_crud.create_list_items(session, list_items, found_list)
     public_items = [ListItemPublic.model_validate(item) for item in created_items]
     return ResponseWithData(message="List items created successfully", data=public_items)
 
