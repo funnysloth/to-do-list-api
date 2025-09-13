@@ -1,10 +1,6 @@
 from pydantic import BaseModel
-from typing import Generic, TypeVar, Optional
-
-T = TypeVar('T')
+from typing import Any
 
 class ResponseBase(BaseModel):
     message: str
-
-class ResponseWithData(ResponseBase, Generic[T]):
-    data: Optional[T] | None = None
+    data: dict[str, Any] | None= None

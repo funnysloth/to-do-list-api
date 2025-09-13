@@ -78,4 +78,5 @@ async def delete_list_item(session: AsyncSession, list_item: ListItem) -> None:
     Deletes the list item by its id within the list.
     """
     await session.delete(list_item)
+    list_item.list.last_modified_at = datetime.now()
     await session.commit()

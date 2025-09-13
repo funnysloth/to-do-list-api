@@ -1,6 +1,5 @@
 # Imports from external libraries
 from fastapi import FastAPI
-from fastapi.security import OAuth2PasswordBearer
 from contextlib import asynccontextmanager
 
 # Imports from app modules
@@ -21,8 +20,6 @@ async def lifespan(app: FastAPI):
 # Initialize app, db and essentials
 app = FastAPI(lifespan=lifespan)
 db_engine = create_db_engine()
-oath2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
 
 # <---------- ROUTES ---------->
 

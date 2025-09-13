@@ -1,7 +1,9 @@
-from fastapi import Depends, HTTPException, Header
+# Imports from external libraries
+from fastapi import Depends, HTTPException, status, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 import jwt
 from jwt.exceptions import InvalidTokenError
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 # Imports from app modules
 import app.crud.user_crud as user_crud
@@ -12,6 +14,8 @@ from app.config import settings
 # Imports from standard library
 from datetime import datetime, timedelta, timezone
 from typing import Any
+
+security = HTTPBearer(auto_error=False)
 
 def create_token(data: dict[str, Any], expires_delta: timedelta, token_type: str, secret: str) -> str:
     '''
@@ -36,14 +40,23 @@ def generate_access_and_refresh_tokens(user_id: int) -> tuple[str, str]:
     refresh_token = create_token(token_data, refresh_token_expires, "refresh_token", settings.REFRESH_TOKEN_SECRET) #type:ignore
     return ( access_token, refresh_token)
 
-async def get_current_user(access_token: str = Header(), session: AsyncSession = Depends(get_session)) -> User:
+async def get_current_user(auth: HTTPAuthorizationCredentials = Depends(security), session: AsyncSession = Depends(get_session)) -> User:
     '''
     Decodes the JWT access token and retrieves user from the DB.
     '''
-    creds_ecxeption = HTTPException(status_code=401,
-                                    detail="invaliid or expired access token.")
-    if not access_token:
-        raise HTTPException(status_code=401, detail="You are not authenticated.")
+    creds_ecxeption = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                    detail={
+                                        "error": "invaliid or expired access token."
+                                    })
+    if not auth:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={
+            "error": "Authorization header missing."
+        })
+    access_token = auth.credentials
+    scheme = auth.scheme
+    if scheme.lower() != "bearer":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"error": "Invali authentication scheme."},
+                            headers={"WWW-Authenticate": "Bearer"})
     try:
         payload = jwt.decode(access_token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]) #type: ignore
         user_id = payload.get("user_id")
@@ -56,15 +69,15 @@ async def get_current_user(access_token: str = Header(), session: AsyncSession =
         raise creds_ecxeption
     return found_user
 
-async def validate_refresh_token(refresh_token: str = Header(), session: AsyncSession = Depends(get_session)) -> User:
+async def validate_refresh_token(refresh_token: str = Body(embed=True), session: AsyncSession = Depends(get_session)) -> User:
     '''
     Decodes the JWT refresh token and retrieves user from the DB.
     '''
-    creds_ecxeption = HTTPException(status_code=401,
+    creds_ecxeption = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                     detail="invaliid or expired refresh token.")
     
     if not refresh_token:
-        raise HTTPException(status_code=401, detail="You are not authenticated.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"error": "Refresh token missing."})
     try:
         payload = jwt.decode(refresh_token, settings.REFRESH_TOKEN_SECRET, algorithms=[settings.JWT_ALGORITHM]) #type: ignore
         user_id = payload.get("user_id")
