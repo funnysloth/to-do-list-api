@@ -1,5 +1,5 @@
 # Imports from external libraries
-from sqlmodel import SQLModel, text
+from sqlmodel import SQLModel
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine, AsyncSession
 
 # Imports from app modules
@@ -10,8 +10,7 @@ def create_db_engine():
     '''
     Creates a database engine using the provided DB_URL.
     '''
-    connect_args = {"check_same_thread": False}
-    return create_async_engine(settings.DB_URL, echo=True, connect_args=connect_args)
+    return create_async_engine(settings.DB_URL, echo=False)
 
 async def create_db_and_tables(engine: AsyncEngine):
     '''
@@ -19,7 +18,6 @@ async def create_db_and_tables(engine: AsyncEngine):
     '''
     async with engine.begin() as connection:
         await connection.run_sync(SQLModel.metadata.create_all)
-        await connection.execute(text("PRAGMA foreign_keys=ON"))
 
 async def get_session():
     '''

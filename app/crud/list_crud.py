@@ -1,5 +1,5 @@
 # Imports from external libraries
-from sqlmodel import select
+from sqlmodel import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import asc, desc
 
@@ -26,14 +26,22 @@ async def get_user_lists(
         user_id: int, 
         name: str | None = None, 
         sort_by: str | None = None, 
-        sort_order: str | None = None
-) -> list[List]:
+        sort_order: str | None = None,
+        page: int = 1,
+        page_size: int = 10
+) -> tuple[list[List], int]:
     """Get lists of a user."""
     conditions = [List.user_id == user_id]
     if name:
         conditions.append(List.name.ilike(f'%{name}%')) #type: ignore
 
     query = select(List).where(*conditions)
+
+    count_query = select(func.count(List.id)).where(*conditions) #type: ignore
+    total_items_result = await session.execute(count_query)
+    total_items = total_items_result.scalar_one()
+
+
     if sort_by:
         col = getattr(List, sort_by, None)
         if col:
@@ -42,8 +50,11 @@ async def get_user_lists(
             else:
                 query = query.order_by(asc(col))
 
+    offset = (page - 1) * page_size
+    query = query.offset(offset).limit(page_size)
+
     lists = await session.execute(query)
-    return list(lists.scalars().all())
+    return list(lists.scalars().all()), total_items
     
 async def get_user_list_by_id(session: AsyncSession, user_id: int, list_id: int) -> List | None:
     """Searches for a list by its id and user's id."""

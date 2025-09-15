@@ -10,6 +10,9 @@ from app.models.user import User
 from app.db import get_session
 from app.utils import *
 
+# Imports from standard library
+import math
+
 router = APIRouter(prefix="/lists/{list_id}/items", tags=["List items"])
 
 @router.post("", response_model=ResponseBase)
@@ -31,20 +34,26 @@ async def create_list_item(
 @router.get("", response_model=ResponseBase)
 async def get_list_items(
     list_id: int,
+    page: int = 1,
+    page_size: int = 10,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
     found_list = await list_crud.get_user_list_by_id(session, current_user.id, list_id)
     if not found_list:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No list with such an id was found within user lists")
-    list_items = await list_item_crud.get_list_items(session, list_id, current_user.id)
+    list_items, total_items = await list_item_crud.get_list_items(session, list_id, current_user.id, page, page_size)
+    message = "List items retrieved successfully"
     if len(list_items) == 0:
-        return ResponseBase(message="There are no list items in the specified list.", data={
-            "list_items": []
-        })
+        message = "No list items were found within the specified list."
+        
     list_items_public = [ListItemPublic.model_validate(item) for item in list_items or []]
-    return ResponseBase(message="List items retrieved successfully", data={
-        "list_items": list_items_public
+    return ResponseBase(message=message, data={
+        "list_items": list_items_public,
+        "total_items": total_items,
+        "total_pages": math.ceil(total_items / page_size) if page_size > 0 else 0,
+        "page": page,
+        "page_size": page_size
     })
 
 @router.get("/{list_item_id}", response_model=ResponseBase)

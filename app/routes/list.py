@@ -11,6 +11,9 @@ from app.models.user import User
 from app.db import get_session
 from app.utils import *
 
+# Imports from standard library
+import math
+
 router = APIRouter(prefix="/lists", tags=["Lists"])
 
 
@@ -35,16 +38,22 @@ async def get_lists(
     session: AsyncSession = Depends(get_session),
     name : str | None = None,
     sort_by: SortBy | None = None,
-    sort_order: SortOrder | None = None
+    sort_order: SortOrder | None = None,
+    page: int = 1,
+    page_size: int = 10
 ):        
-    lists = await list_crud.get_user_lists(session, current_user.id, name, sort_by, sort_order)
+    lists, total_items = await list_crud.get_user_lists(session, current_user.id, name, sort_by, sort_order, page, page_size)
     if len(lists) == 0:
         return ResponseBase(message="No lists were found with such parameters.", data={
             "lists": []
         })
     lists_public = [ListPublic.model_validate(list) for list in lists]
     return ResponseBase(message="Lists retrieved successfully", data={
-        "lists": lists_public
+        "lists": lists_public,
+        "total_items": total_items,
+        "total_pages": math.ceil(total_items / page_size) if page_size > 0 else 0,
+        "page": page,
+        "page_size": page_size
     })
 
 

@@ -1,6 +1,6 @@
 # Imports from external libraries
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
+from sqlmodel import select, func
 
 # Imports from app modules
 from app.models.list_item import ListItem
@@ -28,18 +28,33 @@ async def create_list_items(session: AsyncSession, list_items: list[str], to_do_
     to_do_list.last_modified_at = datetime.now()
     session.add(to_do_list)
     await session.commit()
+    for item in items:
+        await session.refresh(item)
     await session.refresh(to_do_list)
     
     return items
 
 
-async def get_list_items(session: AsyncSession, list_id: int, user_id: int) -> list['ListItem']:
+async def get_list_items(
+        session: AsyncSession, 
+        list_id: int, 
+        user_id: int, 
+        page: int = 1, 
+        page_size: int = 10
+) -> tuple[list['ListItem'], int]:
     """
     Retrieve and return all list items within the user's list.
     """
-    list_items = await session.execute(select(ListItem).join(List).where(ListItem.list_id == list_id,
-                                                                         List.user_id == user_id))
-    return list(list_items.scalars().all())
+    conditions = [ListItem.list_id == list_id, List.user_id == user_id]
+    count_query = select(func.count(ListItem.id)).join(List).where(*conditions) #type: ignore
+    total_items_result = await session.execute(count_query)
+    total_items = total_items_result.scalar_one()
+    if total_items == 0:
+        return [], 0
+
+    offset = (page - 1) * page_size
+    list_items = await session.execute(select(ListItem).join(List).where(*conditions).offset(offset).limit(page_size))
+    return list(list_items.scalars().all()), total_items
 
 
 async def get_list_item_by_id(session: AsyncSession, list_item_id: int, list_id: int, user_id: int) -> ListItem | None:

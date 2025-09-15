@@ -1,11 +1,17 @@
 # Imports from external libraries
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
+from fastapi.responses import JSONResponse
 
 # Imports from app modules
 from app.db import create_db_engine, create_db_and_tables
 from app.routes import user, list, list_item
+from app.logging_config import setup_logging
 
+# Imports from standard library
+import logging
+
+logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,12 +20,20 @@ async def lifespan(app: FastAPI):
     Startup logic is before "yield" keyword.
     Shutodnw logic is after the 'yield" keyword
     '''
+    setup_logging()
+    logger.info("Starting up...")
     await create_db_and_tables(db_engine)
     yield
+    logger.info("Shutting down...")
 
 # Initialize app, db and essentials
 app = FastAPI(lifespan=lifespan)
 db_engine = create_db_engine()
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception for request {Request.method} {request.url}", exc_info=True)
+    return JSONResponse(status_code=500, content={"message": "Internal server error"})
 
 # <---------- ROUTES ---------->
 
