@@ -27,7 +27,12 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down...")
 
 # Initialize app, db and essentials
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    title="To Do List API",
+    description="An API to create and manage to do lists",
+    version="1.0.0"    
+)
 db_engine = create_db_engine()
 
 @app.exception_handler(Exception)

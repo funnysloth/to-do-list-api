@@ -17,7 +17,15 @@ import math
 router = APIRouter(prefix="/lists", tags=["Lists"])
 
 
-@router.post("", response_model=ResponseBase)
+@router.post("", 
+             summary="Creates a list",
+             description="""
+Creates a list.\n
+Requires authorization with JWT token in *Authorization* header.\n
+Expects *name* and *list_items* (optional) as body parameter.\n
+Returns the created list.
+""",
+             response_model=ResponseBase)
 async def create_list(
     list: ListCreate,
     session: AsyncSession = Depends(get_session),
@@ -32,7 +40,15 @@ async def create_list(
     })
 
 
-@router.get("", response_model=ResponseBase)
+@router.get("", 
+            summary="Retrieves lists of a user",
+             description="""
+Retrieves lists of a user by parameters.\n
+Requires authorization with JWT token in *Authorization* header.\n
+Expects the following query parameters: *name*, *sort_by*, *sort_order*, *page*, *page_size*.\n
+Returns found lists.
+""",
+            response_model=ResponseBase)
 async def get_lists(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
@@ -57,7 +73,15 @@ async def get_lists(
     })
 
 
-@router.get("/{list_id}", response_model=ResponseBase)
+@router.get("/{list_id}", 
+            summary="Retrieves list by its id",
+             description="""
+Retrieves list of a user by its id.\n
+Requires authorization with JWT token in *Authorization* header.\n
+Expects *list_id* as path parameter.\n
+Returns the found list.
+""",
+            response_model=ResponseBase)
 async def get_list_by_Id(
     list_id: int,
     session: AsyncSession = Depends(get_session),
@@ -70,7 +94,15 @@ async def get_list_by_Id(
         "list": ListPublic.model_validate(found_list)
     })
 
-@router.patch("/{list_id}", response_model=ResponseBase)
+@router.patch("/{list_id}", 
+              summary="Modifies the list name",
+             description="""
+Modifies the list name.\n
+Requires authorization with JWT token in *Authorization* header.\n
+Expects *name* as body parameter and *list_id* as path parameter.\n
+Returns the modified list.
+""",
+              response_model=ResponseBase)
 async def update_list(
     list_id: int,
     list: ListUpdate,
@@ -86,7 +118,14 @@ async def update_list(
     })
 
 
-@router.delete("/{list_id}", response_model=ResponseBase)
+@router.delete("/{list_id}", 
+               summary="Deletes a list by its id",
+             description="""
+Deletes a list of a user by its id.\n
+Requires authorization with JWT token in *Authorization* header.\n
+Expects *list_id* as path parameter.\n
+""",
+               response_model=ResponseBase)
 async def delete_list(
     list_id: int,
     session: AsyncSession = Depends(get_session),

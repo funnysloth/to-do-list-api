@@ -1,5 +1,5 @@
 # Imports from external libraries
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Imports from app modules
@@ -19,7 +19,14 @@ PASSWORD_REGEX = re.compile(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^\w\s])\S{
 
 router = APIRouter(prefix="", tags=["Users"])
 
-@router.post("/register", response_model=ResponseBase)
+@router.post("/register",
+             summary="Register a new user", 
+             description="""
+Register a new user.\n
+Expects *username* and *password* as form urlencoded parameters.\n
+Returns the created user.
+             """,
+             response_model=ResponseBase)
 async def create_user(user: UserCredentials, session: AsyncSession = Depends(get_session)):
     db_user = User.model_validate(user)
     if await user_crud.get_user_by_username(session, db_user.username):
@@ -32,7 +39,14 @@ async def create_user(user: UserCredentials, session: AsyncSession = Depends(get
     })
 
 
-@router.post("/login", response_model=ResponseBase)
+@router.post("/login", 
+             summary="Login a user",
+             description="""
+Logins a user.\n
+Expects *username* and *password* as form urlencoded parameters.\n
+Returns the JWT access token and refresh token.
+""",
+             response_model=ResponseBase)
 async def login(user: UserCredentials, session: AsyncSession = Depends(get_session)):
     try:
         authenticated_user = await user_crud.authenticate_user(session, user)
@@ -48,9 +62,17 @@ async def login(user: UserCredentials, session: AsyncSession = Depends(get_sessi
             "refresh_token": refresh_token
         })
 
-@router.patch("/users", response_model=ResponseBase)
+@router.patch("/users", 
+                summary="Modifies user data.",
+                description="""
+Modifies user data..\n
+Requires authorization with JWT token in *Authorization* header.\n
+Expects optional *username* and *password* as form urlencoded parameters.\n
+Returns the updated user.
+""",
+                response_model=ResponseBase)
 async def update_user(
-    user: UserUpdate = Body(),
+    user: UserUpdate,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
@@ -64,13 +86,26 @@ async def update_user(
     })
 
 
-@router.delete("/users", response_model=ResponseBase)
+@router.delete("/users",
+                summary="Deletes a user",
+                description="""
+Deletes a user.\n
+Requires authorization with JWT token in *Authorization* header.\n
+""",
+                response_model=ResponseBase)
 async def delete_user(session: AsyncSession = Depends(get_session), current_user: User = Depends(get_current_user)):
     await user_crud.delete_user(session, current_user)
     return ResponseBase(message="User deleted successfully", data=None)
 
 
-@router.post("/refresh-token", response_model=ResponseBase)
+@router.post("/refresh-token",
+             summary="Refreshes JWT acess token",
+             description="""
+Refreshes JWT acess token.\n
+Expects *refresh_token* body parameter.\n
+Returns the new JWT access token and refresh token.
+""",
+              response_model=ResponseBase)
 def refresh_token(current_user: User = Depends(validate_refresh_token)):
     access_token, refresh_token = generate_access_and_refresh_tokens(current_user.id)
     return ResponseBase(message="Login successful", data={

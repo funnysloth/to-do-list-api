@@ -15,7 +15,15 @@ import math
 
 router = APIRouter(prefix="/lists/{list_id}/items", tags=["List items"])
 
-@router.post("", response_model=ResponseBase)
+@router.post("", 
+             summary="Creates a list items in a specified list",
+             description="""
+Creates a list items in a specified list.\n
+Requires authorization with JWT token in *Authorization* header.\n
+Expects an array of *list_items* as body parameter.\n
+Returns the created list items.
+""",
+             response_model=ResponseBase)
 async def create_list_item(
     list_id: int,
     list_items: list[str] = Body(),
@@ -31,7 +39,15 @@ async def create_list_item(
         "list_items": public_items
     })
 
-@router.get("", response_model=ResponseBase)
+@router.get("", 
+            summary="Retrieves list items of a specified list",
+             description="""
+Retrieves list items of a specified list.\n
+Requires authorization with JWT token in *Authorization* header.\n
+Expects *list_id* as path parameter and the following query parameters: *page*, *page_size*.\n
+Returns found list items.
+""",
+            response_model=ResponseBase)
 async def get_list_items(
     list_id: int,
     page: int = 1,
@@ -56,7 +72,15 @@ async def get_list_items(
         "page_size": page_size
     })
 
-@router.get("/{list_item_id}", response_model=ResponseBase)
+@router.get("/{list_item_id}", 
+            summary="Retrieves a list items of a specified list by its id",
+             description="""
+Retrieves a list items of a specified list by its id.\n
+Requires authorization with JWT token in *Authorization* header.\n
+Expects *list_id* and *list_item_id* as path parameters.\n
+Returns found list item.
+""",
+            response_model=ResponseBase)
 async def get_list_item(
     list_id: int,
     list_item_id: int,
@@ -70,7 +94,15 @@ async def get_list_item(
         "list_item": ListItemPublic.model_validate(list_item)
     })
 
-@router.patch("/{list_item_id}", response_model=ResponseBase)
+@router.patch("/{list_item_id}", 
+              summary="Modifies a list items in a specified list by its id",
+             description="""
+Modifies a list items in a specified list by its id.\n
+Requires authorization with JWT token in *Authorization* header.\n
+Expects *list_id*, *list_item_id* as path parameter and *content* and *is_completed* as optional body parameters.\n
+Returns the created list items.
+""",
+              response_model=ResponseBase)
 async def update_list_item(
     list_id: int,
     list_item_id: int,
@@ -87,7 +119,14 @@ async def update_list_item(
     })
 
 
-@router.delete("/{list_item_id}", response_model=ResponseBase)
+@router.delete("/{list_item_id}", 
+               summary="Deletes a list items in a specified list by its id",
+             description="""
+Deletes a list items in a specified list by its id.\n
+Requires authorization with JWT token in *Authorization* header.\n
+Expects *list_id*, *list_item_id* as path parameter.\n
+""",
+               response_model=ResponseBase)
 async def delete_list_item(
     list_id: int,
     list_item_id: int,
