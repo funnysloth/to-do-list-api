@@ -5,3 +5,4 @@ sqlmodel
 pyjwt
 pydantic-settings
 asyncpg
+passlib
