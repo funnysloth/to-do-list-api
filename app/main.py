@@ -29,9 +29,15 @@ async def lifespan(app: FastAPI):
 # Initialize app, db and essentials
 app = FastAPI(
     lifespan=lifespan,
-    title="To Do List API",
-    description="An API to create and manage to do lists",
-    version="1.0.0"    
+    title="To-Do List API",
+    description="""
+API for managing to‑do lists and list items.
+
+This API supports JWT authentication and provides endpoints for creating, retrieving,
+updating, and deleting lists and list items. Interactive documentation is available
+via Swagger UI (/docs) and ReDoc (/redoc).
+""",
+    version="1.0.0"
 )
 db_engine = create_db_engine()
 
@@ -45,3 +51,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(user.router)
 app.include_router(list.router)
 app.include_router(list_item.router)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

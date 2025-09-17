@@ -1,6 +1,10 @@
+# Imports from external libraries
+from pythonjsonlogger.json import JsonFormatter
+
+# Imports from standard library
 import logging
 import sys
-from pythonjsonlogger.json import JsonFormatter
+
 
 def setup_logging():
     """

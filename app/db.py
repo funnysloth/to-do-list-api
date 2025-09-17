@@ -10,6 +10,15 @@ def create_db_engine():
     '''
     Creates a database engine using the provided DB_URL.
     '''
+    if settings.DB_URL.startswith("sqlite"):
+        return create_async_engine(
+            settings.DB_URL,
+            echo=False,
+            connect_args={
+                "check_same_thread": False, 
+                "pragma": {"foreign_keys": 1}
+            }
+        )
     return create_async_engine(settings.DB_URL, echo=False)
 
 async def create_db_and_tables(engine: AsyncEngine):

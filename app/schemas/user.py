@@ -11,3 +11,11 @@ class UserCredentials(SQLModel):
 class UserUpdate(SQLModel):
     username: str | None = Form(default=None)
     password: str | None = Form(default=None)
+
+class UserInfo(SQLModel):
+    user: UserPublic
+
+class AccessToken(SQLModel):
+    access_token: str
+    token_type: str
+    refresh_token: str

@@ -1,6 +1,6 @@
 # Imports from external libraries
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select, func
+from sqlmodel import select, func, asc
 
 # Imports from app modules
 from app.models.list_item import ListItem
@@ -53,7 +53,7 @@ async def get_list_items(
         return [], 0
 
     offset = (page - 1) * page_size
-    list_items = await session.execute(select(ListItem).join(List).where(*conditions).offset(offset).limit(page_size))
+    list_items = await session.execute(select(ListItem).join(List).where(*conditions).order_by(asc(ListItem.created_at)).offset(offset).limit(page_size))
     return list(list_items.scalars().all()), total_items
 
 

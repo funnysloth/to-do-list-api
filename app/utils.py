@@ -69,7 +69,7 @@ async def get_current_user(auth: HTTPAuthorizationCredentials = Depends(security
         raise creds_ecxeption
     return found_user
 
-async def validate_refresh_token(refresh_token: str = Body(embed=True), session: AsyncSession = Depends(get_session)) -> User:
+async def validate_refresh_token(refresh_token: str = Body(embed=True, example="YOUR_REFRESH_TOKEN_HERE"), session: AsyncSession = Depends(get_session)) -> User:
     '''
     Decodes the JWT refresh token and retrieves user from the DB.
     '''
