@@ -1,6 +1,6 @@
 plan.md
 *.db
-.env
+*.env
 __pycache__/
 todo.md
 .vscode/*
