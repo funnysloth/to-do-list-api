@@ -2,6 +2,12 @@
 
 A RESTful API built with FastAPI for managing to‑do lists and their items. This API supports user management, list and item CRUD operations, and paginated responses. It uses PostgreSQL by default but can be adapted to use SQLite for local development.
 
+## Hosted URLs and Documentation
+
+- **Live API:** [https://to-do-list-api-awn9.onrender.com/](https://to-do-list-api-awn9.onrender.com/)
+- **Interactive Documentation (Swagger UI):** [https://to-do-list-api-awn9.onrender.com/docs](https://to-do-list-api-awn9.onrender.com/docs)
+- **Alternative Documentation (ReDoc):** [https://to-do-list-api-awn9.onrender.com/redoc](https://to-do-list-api-awn9.onrender.com/redoc)
+
 ## Features
 
 - **User Management:** Register, log in, view, update, and delete user accounts.
@@ -22,7 +28,7 @@ A RESTful API built with FastAPI for managing to‑do lists and their items. Thi
 1. **Clone the repository:**
 
    ```sh
-   git clone https://github.com/yourusername/to-do-list-api.git
+   git clone https://github.com/funnysloth/to-do-list-api.git
    cd to-do-list-api
    ```
 
@@ -155,4 +161,4 @@ FastAPI generates interactive documentation automatically:
 
 ## Contact
 
-For questions or further information, please contact [your.email@example.com](mailto:your.email@example.com).
+For questions or further information, please contact [your.email@example.com](mailto:arkhipovdmytro@gmail.com).
