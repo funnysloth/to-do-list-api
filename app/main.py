@@ -48,6 +48,17 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # <---------- ROUTES ---------->
 
+@app.get("/")
+async def get_root():
+    """
+    Returns a simple welcome message and API status.
+    """
+    return {
+        "message": "Welcome to the To-Do List API!",
+        "status": "ok",
+        "documentation": "/docs"
+    }
+
 app.include_router(user.router)
 app.include_router(list.router)
 app.include_router(list_item.router)
