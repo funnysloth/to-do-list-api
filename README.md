@@ -77,10 +77,12 @@ Create a `.env` file in the root directory (next to README.md) with the followin
 
 ```
 # .env file example
-DATABASE_URL=postgresql+asyncpg://username:password@localhost/todo_db
+DB_URL=postgresql+asyncpg://username:password@localhost/todo_db
 JWT_SECRET=your_jwt_secret_key
 JWT_ALGORITHM=HS256
-JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+JWT_EXPIRATION_MINUTES=30
+REFRESH_TOKEN_EXPIRATION_DAYS=7
+REFRESH_TOKEN_SECRET=your_refresh_token_secret_key
 # Additional configuration variables can be added here
 ```
 
@@ -95,7 +97,7 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
    Create a new database (e.g., `todo_db`).
 
 3. **Configure the Database:**  
-    Ensure your `.env` file has the correct connection string in the corresponding variable (`DATABASE_URL`).
+    Ensure your `.env` file has the correct connection string in the corresponding variable (`DB_URL`).
 
 ### Using Docker
 
@@ -112,7 +114,7 @@ Then, update your `.env` file with the appropriate connection string.
 For local development or testing, switch to SQLite by updating your configuration (in `app/config.py`):
 
 ```python
-DATABASE_URL = "sqlite+aiosqlite:///./todo_db.sqlite"
+DB_URL = "sqlite+aiosqlite:///./todo_db.sqlite"
 ```
 
 ## Running the Application
@@ -161,4 +163,4 @@ FastAPI generates interactive documentation automatically:
 
 ## Contact
 
-For questions or further information, please contact [your.email@example.com](mailto:arkhipovdmytro@gmail.com).
+For questions or further information, please contact [arkhipovdmytro@gmail.com](mailto:arkhipovdmytro@gmail.com).
