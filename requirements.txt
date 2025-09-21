@@ -7,3 +7,4 @@ pydantic-settings
 asyncpg
 passlib
 python-json-logger
+psycopg2
