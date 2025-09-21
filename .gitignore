@@ -4,3 +4,4 @@ plan.md
 __pycache__/
 todo.md
 .vscode/*
+venv
